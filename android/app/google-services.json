@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "417964559277",
+    "project_id": "soulmateai-70312",
+    "storage_bucket": "soulmateai-70312.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:417964559277:android:e5ba7df2e5e63a25e96f24",
+        "android_client_info": {
+          "package_name": "com.example.nauman"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "417964559277-i0havpf8481ao0pnkbm7f2na2rcss2d0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.nauman",
+            "certificate_hash": "485ea4d1e95d4e9ff30548b61df076005a21f3fe"
+          }
+        },
+        {
+          "client_id": "417964559277-v1a7d0sot93jsipsbhf1nsp6m8f5o4qe.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCAVV9hgW-EvG3FwfY3yERO2B20hci-_ZM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "417964559277-v1a7d0sot93jsipsbhf1nsp6m8f5o4qe.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "417964559277-phu02nktcqhq1j0es5q1oc9t2sdcqsgi.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.nauman"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
