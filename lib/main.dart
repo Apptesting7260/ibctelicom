@@ -26,7 +26,7 @@ void main() async {
   
   await FlutterBranchSdk.init(
       useTestKey: false, enableLogging: false, disableTracking: false);
-  FlutterBranchSdk.validateSDKIntegration();
+  // FlutterBranchSdk.validateSDKIntegration();
 
   
   FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -52,14 +52,21 @@ void main() async {
 class MainClass extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(statusBarColor: Colors.white,systemNavigationBarColor: Colors.white,statusBarIconBrightness: Brightness.dark,systemNavigationBarIconBrightness: Brightness.dark)
+    );
     print("Value =============> ${notificationBell.value}");
     SystemChrome.setPreferredOrientations([
+
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
     return GetMaterialApp(
+      
       theme: ThemeData()
-          .copyWith(primaryColor: primaryDark, splashColor: primaryDark),
+          .copyWith(
+          
+            primaryColor: primaryDark, splashColor: primaryDark),
       debugShowCheckedModeBanner: false,
       home: SplashScreen(),
     );

@@ -10,7 +10,7 @@
    
      override func application(_ application: UIApplication,didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
      ) -> Bool {
-         Branch.setUseTestBranchKey(true)
+         Branch.setUseTestBranchKey(false)
          FirebaseApp.configure()
          Branch.getInstance().initSession(launchOptions: launchOptions) { (params, error) in
              print(params as? [String: AnyObject] ?? {})

@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -19,12 +19,11 @@ import 'package:nauman/UI%20Components/color.dart';
 import 'package:nauman/UI%20Components/textDesign.dart';
 import 'package:nauman/global_variables.dart';
 import 'package:nauman/loadingScreen.dart';
-import 'package:nauman/models/chatGPT/chatGPT_responseModal.dart';
 
-import 'package:nauman/view/Chat%20Screens/audioCallScreen.dart';
 import 'package:nauman/view/Chat%20Screens/chatListScreen.dart';
-import 'package:nauman/view/Chat%20Screens/videoCallScreen.dart';
+
 import 'package:nauman/view_models/controller/agora%20token/agora_controller.dart';
+import 'package:nauman/view_models/controller/blockUnblock/blockUnblock_controller.dart';
 
 class ChatScreen extends StatefulWidget {
   final String roomId;
@@ -35,8 +34,11 @@ class ChatScreen extends StatefulWidget {
   final String ownPhoto;
   final String ownUserId;
   final String deviceToken;
+  final bool blockStatusGet;
   ChatScreen(
-      {required this.ownPhoto,
+      {
+        required this.blockStatusGet,
+        required this.ownPhoto,
       required this.ownUserId,
       required this.deviceToken,
       required this.userId,
@@ -49,7 +51,8 @@ class ChatScreen extends StatefulWidget {
 }
 
 class ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
- 
+  RxBool BlockStatus = false.obs;
+  RxBool OwnBlockStatus = false.obs;
   @override
   void initState() {
      screenStatus = true.obs;
@@ -199,7 +202,9 @@ class ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         'profilePhoto': widget.photoUrl,
         'newMsg': false,
         'onScreen': false,
-        "noOfUnread": 0
+        "noOfUnread": 0,
+        'block': false,
+        'ownBlock': false
         // Add other room metadata if needed
       });
     } else {
@@ -226,6 +231,19 @@ class ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       await deviceTokenRef.update({'device token': fcmToken});
     }
   
+   var blockCheckRef = _firestore.collection(widget.ownUserId).doc(widget.roomId);
+   var blockSnap = await blockCheckRef.get();
+   if(blockSnap.exists){
+     var dd = blockSnap.data();
+    
+     BlockStatus.value = dd!['block'];
+     OwnBlockStatus.value = dd['ownBlock'];
+     print("yayayayayayayaayayayyaayayyaayyayayayayyaayyayayaa");
+     print(BlockStatus);
+   }
+
+
+
   }
 
   clearUnRead() async {
@@ -274,7 +292,8 @@ class ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         'profilePhoto': widget.ownPhoto,
         'newMsg': false,
         'onScreen': true,
-        
+         "block":false,
+         "ownBlock":false,
         "noOfUnread": 0
         // Add other room metadata if needed
       });
@@ -553,8 +572,13 @@ class ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                       }
 
                                      }
+
+              
   @override
   Widget build(BuildContext context) {
+ 
+    print("yayayayayayayaayayayyaayayyaayyayayayayyaayyayayaa");
+     print(BlockStatus.value);
       print("Collection Name");
     print(widget.ownUserId);
     print(widget.userId);
@@ -566,6 +590,7 @@ class ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
     final height = Get.height;
     return Scaffold(
+      backgroundColor: Colors.white,
         resizeToAvoidBottomInset: true,
         appBar: CustomAppBar(
           otherUserId: widget.userId,
@@ -575,8 +600,35 @@ class ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           username: widget.name,
           isOnline: isOnline,
           photoUrl: widget.photoUrl,
+          blockStatus: widget.blockStatusGet,
+          
         ),
-        bottomSheet: Padding(
+        bottomSheet:
+       Obx(() {
+     
+     return   (BlockStatus.value == true || OwnBlockStatus.value == true ) ? 
+       
+        BlockStatus.value == true?
+         Padding(
+           padding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+          child: Container(
+            width: Get.width,
+            height: Get.height*.07,
+            child: Center(child: TextClass(size: 16, fontWeight: FontWeight.w500, title: 'You are blocked by this user', fontColor: Colors.red)))) :
+             Padding(
+           padding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+          child: Container(
+         
+            width: Get.width,
+            height: Get.height*.07,
+            child: Center(child: TextClass(
+              align: TextAlign.center,
+              size: 16, fontWeight: FontWeight.w500, title: 'You blocked this account, Unblock to start conversation!', fontColor: Colors.red))))
+        :
+     
+        
+        
+         Padding(
           padding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
           child: SingleChildScrollView(
             child: Column(
@@ -719,7 +771,7 @@ class ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               ],
             ),
           ),
-        ),
+        );}),
         body: StreamBuilder<QuerySnapshot>(
           stream: getMessagesStream(widget.roomId),
           builder:
@@ -1020,10 +1072,12 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final String colName;
   final String roomId;
   final String otherUserId;
+  final bool blockStatus;
   @override
   Size get preferredSize => Size(Get.width, Get.height * .1);
   CustomAppBar(
       {
+        required this.blockStatus,
         required this.otherUserId,
         required this.photoUrl,
       required this.profilePhotoUrl,
@@ -1037,6 +1091,7 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _CustomAppBarState extends State<CustomAppBar> {
+  var blockController = Get.put(BlockUnblockViewModel());
   @override
   void initState() {
     // TODO: implement initState
@@ -1187,22 +1242,13 @@ var  agoraController = Get.put(AgoraTokenViewModal());
                   size: 25,
                 ),
               ),
-              SizedBox(
-                width: width * .02,
-              ),
-              InkWell(
-                onTap: () {
-                  ChatListState().ShowDialog(context);
-                },
-                child: Icon(
-                  Icons.more_vert,
-                  size: 25,
-                ),
-              )
+              SizedBox(width: 10,)
+             
             ],
           ),
         ),
       ),
     );
   }
+ 
 }

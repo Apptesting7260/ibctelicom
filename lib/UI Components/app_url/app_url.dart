@@ -51,5 +51,6 @@ class AppUrl {
   static const String notificationSeenAPiUrl = "https://urlsdemo.xyz/soulmate/api/user-notification-seen-api";
   static const String agoraTokenGetAPIUrl = "https://urlsdemo.xyz/soulmate/api/user-calling-api";
   static const String loginTimerUrl = "https://urlsdemo.xyz/soulmate/api/pwd-remaining-time-api";
-
+  static const String userAccountDelete = "https://urlsdemo.xyz/soulmate/api/user-delete-api";
+  
 }

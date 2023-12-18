@@ -1,25 +1,25 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
-// import 'package:nauman/Chat%20Screens/audioCallScreen.dart';
-// import 'package:nauman/Chat%20Screens/chatwithPersonScreen.dart';
+
 import 'package:nauman/UI%20Components/color.dart';
-import 'package:nauman/UI%20Components/components/internet_exceptions_widget.dart';
+
 import 'package:nauman/UI%20Components/textDesign.dart';
 import 'package:nauman/data/response/status.dart';
 import 'package:nauman/global_variables.dart';
 import 'package:nauman/view/Chat%20Screens/chatwithPersonScreen.dart';
+import 'package:nauman/view_models/controller/blockUnblock/blockUnblock_controller.dart';
 import 'package:nauman/view_models/controller/chat%20searching/chat_searching_controller.dart';
-import 'package:nauman/view_models/controller/user_profile_view/user_profile_view_controller.dart';
+
 
 class ChatList extends StatefulWidget {
-  String collectionName;
-  String ownPhoto;
-  String ownUserId;
+ final String collectionName;
+ final String ownPhoto;
+ final String ownUserId;
 
   ChatList(
       {required this.ownPhoto,
@@ -31,13 +31,15 @@ class ChatList extends StatefulWidget {
 
 class ChatListState extends State<ChatList> {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
-
+  var blockController = Get.put(BlockUnblockViewModel());
   Stream<QuerySnapshot> getMessagesStream() {
     return firestore
         .collection(widget.ownUserId)
         .orderBy('timestamp', descending: true)
         .snapshots();
   }
+  
+ var data;
 
   // String time = '12:20 AM  |  12.08.2023';
   String chatProfileUrl = 'assets/images/messagePerson.png';
@@ -52,8 +54,7 @@ class ChatListState extends State<ChatList> {
   Widget build(BuildContext context) {
     print("Collection Name");
     print(widget.ownUserId);
-    final width = Get.width;
-    final height = Get.height;
+
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -226,7 +227,10 @@ class ChatListState extends State<ChatList> {
                                             roomId: chatPersonGetVM.UserDataList
                                                 .value.userList![index].roomId
                                                 .toString(),
-                                            collectionName: widget.collectionName));
+                                            collectionName: widget.collectionName,
+                                            blockStatusGet: false,
+                                            
+                                            ));
                                       },
                                       child: TextClass(
                                           fontColor: Colors.black,
@@ -238,7 +242,8 @@ class ChatListState extends State<ChatList> {
                                     ),
                                     trailing: GestureDetector(
                                       onTap: () {
-                                        ShowDialog(context);
+                                     ShowDialog(context,data['ownBlock'],data['userId'],widget.ownUserId,data['roomId']);
+                                       
                                       },
                                       child: Icon(
                                         Icons.more_vert,
@@ -259,11 +264,12 @@ class ChatListState extends State<ChatList> {
                   stream: getMessagesStream(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.active) {
+
                       return snapshot.data!.docs.isEmpty == false
                           ? ListView.builder(
                               itemCount: snapshot.data?.docs.length,
                               itemBuilder: (context, index) {
-                                var data = snapshot.data?.docs[index];
+                                 data = snapshot.data?.docs[index];
                                 // .snapshots();
                                 if (data!['newMsg'] == true) {
                                   unReadValue.value = unReadValue.value + 1;
@@ -350,7 +356,8 @@ class ChatListState extends State<ChatList> {
                                         print(gettingDeviceToken!['device token']);
                                         print("***********************End************************");
                                         Get.to(() => ChatScreen(
-                                              deviceToken: gettingDeviceToken!['device token'],
+                                          blockStatusGet: data.get('ownBlock'),
+                                              deviceToken: gettingDeviceToken['device token'],
                                                  
                                               ownPhoto: widget.ownPhoto,
                                               ownUserId: widget.ownUserId,
@@ -379,6 +386,7 @@ class ChatListState extends State<ChatList> {
                                         print(gettingDeviceToken!['device token']);
                                         print("***********************End************************");
                                         Get.to(() => ChatScreen(
+                                          blockStatusGet: data.get('ownBlock'),
                                               deviceToken:
                                                  gettingDeviceToken!['device token'],
                                               ownPhoto: widget.ownPhoto,
@@ -413,7 +421,7 @@ class ChatListState extends State<ChatList> {
                                             : Container(),
                                         GestureDetector(
                                           onTap: () {
-                                            ShowDialog(context);
+                                            ShowDialog(context,data['ownBlock'],data['userId'],widget.ownUserId,data['roomId']);
                                           },
                                           child: Icon(
                                             Icons.more_vert,
@@ -441,7 +449,7 @@ class ChatListState extends State<ChatList> {
         }));
   }
 
-  void ShowDialog(BuildContext context) {
+  void ShowDialog(BuildContext context,bool blockType,String userId,String ownUserId,String rId){
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -449,39 +457,61 @@ class ChatListState extends State<ChatList> {
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           alignment: Alignment.center,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(top: 10, bottom: 10, left: 20),
-              child: Column(
-                children: [
-                  Row(
+          title: Padding(
+            padding: const EdgeInsets.only(top: 10, bottom: 10, left: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                InkWell(
+                  onTap: () {
+                     blockController.blocked_user_id!.value = userId ;
+                     blockController.fromChat.value = true;
+                     blockController.collectionOth!.value = userId;
+                     blockController.collection!.value = ownUserId;
+                     blockController.rid!.value = rId;
+
+                          blockController.blockUnblockApi();
+                          // blockStatus.value = !blockStatus.value;
+                          Navigator.pop(context);
+                  
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Icon(Icons.block),
+                      SizedBox(width: 20,),
+                      blockType == true ? 
+                        TextClass(
+                          size: 14,
+                          fontWeight: FontWeight.w600,
+                          title: ' Unblock',
+                          fontColor: Colors.black):
                       TextClass(
                           size: 14,
                           fontWeight: FontWeight.w600,
-                          title: '  Block',
+                          title: ' Block',
                           fontColor: Colors.black)
                     ],
                   ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Row(
-                    children: [
-                      Icon(Icons.outlined_flag),
-                      TextClass(
-                          size: 14,
-                          fontWeight: FontWeight.w600,
-                          title: '  Report',
-                          fontColor: Colors.black)
-                    ],
-                  )
-                ],
-              ),
-            )
-          ],
-        );
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                Row(
+                  children: [
+                    Icon(Icons.outlined_flag),
+                     SizedBox(width: 20,),
+                    TextClass(
+                        size: 14,
+                        fontWeight: FontWeight.w600,
+                        title: ' Report',
+                        fontColor: Colors.black)
+                  ],
+                )
+              ],
+            ),
+          ));
       },
     );
   }

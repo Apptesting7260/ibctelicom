@@ -130,82 +130,93 @@ class MyConnectionsState extends State<MyConnections> {
                        physics: AlwaysScrollableScrollPhysics(),
                       controller: connectionController,
                         itemCount: 
-                       ConnectionDataList.length+1,
-                        itemBuilder: (context, index) => InkWell(
+                       ConnectionDataList.length,
+                        itemBuilder: (context, index) {
+                          print(ConnectionDataList[index].block_status);
+                           return InkWell(
                           onTap: () {
+                          
+                            ConnectionDataList[index].block_status == 0 ?
+                            (
                             otherProfileViewModel.user_id.value =
                               ConnectionDataList[index].userDetails!.userId
-                                    .toString();
-                             Get.to(()=>OtherProfile(fromLink: false,));
+                                    .toString(),
+                             Get.to(()=>OtherProfile(fromLink: false,))
+                            ) :
+                            (showDialog(context: context, builder: (context) => AlertDialog(title: TextClass(size: 15, fontWeight: FontWeight.w500, title: 'You are blocked by ${ConnectionDataList[index].userName}', fontColor: Colors.red),),));
                           },
                           child:
                           
-                           Column(
-                            children: [
-                              SizedBox(
-                                height: Get.height * .03,
-                              ),
-                              index == ConnectionDataList.length ? 
-                            callConnectionPagination.value == true ?
-                                CircularProgressIndicator(color: primaryDark,)
-                            :
-                            Center(child: Chip(label: TextClass(size: 14, fontWeight: FontWeight.w600, title: 'No more profiles!', fontColor: primaryDark)),)
+                           Container(
+                            width: Get.width,
+                            color:   ConnectionDataList[index].block_status == 0 ? Colors.transparent:Colors.grey.shade400,
+                             child: Column(
+                              children: [
+                                SizedBox(
+                                  height: Get.height * .03,
+                                ),
+                                index == ConnectionDataList.length ? 
+                              callConnectionPagination.value == true ?
+                                  CircularProgressIndicator(color: primaryDark,)
                               :
-                              ListTile(
-                                  leading: CachedNetworkImage(
-                                    imageUrl: ConnectionDataList[index].proImgUrl
-                                        .toString(),
-                                    imageBuilder: (context, imageProvider) =>
-                                        Container(
-                                      width: 55.0,
-                                      height: 55.0,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        image: DecorationImage(
-                                            image: imageProvider,
-                                            fit: BoxFit.cover),
+                              Center(child: Chip(label: TextClass(size: 14, fontWeight: FontWeight.w600, title: 'No more profiles!', fontColor: primaryDark)),)
+                                :
+                                ListTile(
+                                    leading: CachedNetworkImage(
+                                      imageUrl: ConnectionDataList[index].proImgUrl
+                                          .toString(),
+                                      imageBuilder: (context, imageProvider) =>
+                                          Container(
+                                        width: 55.0,
+                                        height: 55.0,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          image: DecorationImage(
+                                              image: imageProvider,
+                                              fit: BoxFit.cover),
+                                        ),
                                       ),
+                                      placeholder: (context, url) =>
+                                          CircularProgressIndicator(
+                                        color: primaryDark,
+                                      ),
+                                      errorWidget: (context, url, error) =>
+                                          Icon(Icons.error),
                                     ),
-                                    placeholder: (context, url) =>
-                                        CircularProgressIndicator(
-                                      color: primaryDark,
-                                    ),
-                                    errorWidget: (context, url, error) =>
-                                        Icon(Icons.error),
-                                  ),
-                                  title: TextClass(
-                                      size: 14,
-                                      fontWeight: FontWeight.w600,
-                                      title:ConnectionDataList[index].userName!,
-                                      fontColor: primaryDark),
-                                  subtitle: TextClass(
-                                      size: 11,
-                                      fontWeight: FontWeight.w400,
-                                      title: ConnectionDataList[index].userDetails!.profession!
-                                         
-,
-                                      fontColor: Colors.black),
-                                  trailing: ElevatedButton(
-                                      onPressed: () {
-                                    
-                                        ConfirmDialog(index);
-                                      },
-                                      style: ButtonStyle(
-                                          backgroundColor:
-                                              MaterialStatePropertyAll(
-                                                  Colors.red),
-                                          shape: MaterialStatePropertyAll(
-                                              RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.all(
-                                                      Radius.circular(20))))),
-                                      child: TextClass(
-                                          size: 8,
-                                          fontWeight: FontWeight.w400,
-                                          title: 'Remove',
-                                          fontColor: Colors.white))),
-                            ],
-                          ),
-                        ),
+                                    title: TextClass(
+                                        size: 14,
+                                        fontWeight: FontWeight.w600,
+                                        title:ConnectionDataList[index].userName!,
+                                        fontColor: primaryDark),
+                                    subtitle: TextClass(
+                                        size: 11,
+                                        fontWeight: FontWeight.w400,
+                                        title: ConnectionDataList[index].userDetails!.profession!
+                                           
+                             ,
+                                        fontColor: Colors.black),
+                                    trailing: ElevatedButton(
+                                        onPressed: () {
+                                      
+                                          ConfirmDialog(index);
+                                        },
+                                        style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStatePropertyAll(
+                                                    Colors.red),
+                                            shape: MaterialStatePropertyAll(
+                                                RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.all(
+                                                        Radius.circular(20))))),
+                                        child: TextClass(
+                                            size: 8,
+                                            fontWeight: FontWeight.w400,
+                                            title: 'Remove',
+                                            fontColor: Colors.white))),
+                              ],
+                                                       ),
+                           ),
+                        );}
                       ),
                   );
           }
@@ -232,7 +243,7 @@ class MyConnectionsState extends State<MyConnections> {
                         child: TextClass(
                             size: 14,
                             fontWeight: FontWeight.w600,
-                            title: "Are you sure you want to revoke request.",
+                            title: "Are you sure you want to remove connection.",
                             fontColor: Colors.black),
                       )
                     ],

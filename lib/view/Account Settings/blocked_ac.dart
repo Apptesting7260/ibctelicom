@@ -13,6 +13,7 @@ import 'package:nauman/view/Other%20Profile/otherProfile.dart';
 import 'package:nauman/view_models/controller/blockList/blockList_controller.dart';
 import 'package:nauman/view_models/controller/blockUnblock/blockUnblock_controller.dart';
 import 'package:nauman/view_models/controller/other_profile_view/other_profile_view_viewModel.dart';
+import 'package:nauman/view_models/controller/user_profile_view/user_profile_view_controller.dart';
 
 class BlockedAccountsScreen extends StatefulWidget {
   @override
@@ -23,10 +24,12 @@ class BlockedAccountsScreenState extends State<BlockedAccountsScreen> {
   var blockList_viewModal = Get.put(BlockListViewModel());
   var otherProfileViewModel = Get.put(OtherProfileView_ViewModel());
   var unblock_viewModal = Get.put(BlockUnblockViewModel());
+  var ownProfileVM = Get.put(UserProfileView_ViewModel());
   ScrollController blockController = ScrollController();
   @override
   void initState() {
     blockList_viewModal.BlockListApi(false);
+    ownProfileVM.UserProfileViewApi();
     blockController.addListener(() {
       if (blockController.position.maxScrollExtent == blockController.offset) {
         fetchData();
@@ -88,21 +91,19 @@ class BlockedAccountsScreenState extends State<BlockedAccountsScreen> {
             case Status.COMPLETED:
               return BlockDataList.isEmpty
                   ? RefreshIndicator(
-                       color: primaryDark,
+                      color: primaryDark,
                       onRefresh: () async {
                         callBlockPagination.value = true;
                         pageBlock.value = 1;
                         blockList_viewModal.page_no.value = '1';
                         blockList_viewModal.BlockListApi(false);
                       },
-                    child: SingleChildScrollView(
+                      child: SingleChildScrollView(
                         physics: AlwaysScrollableScrollPhysics(),
-                        
-                      child: Column(
-
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
                               SizedBox(
                                 height: Get.height * .1,
                               ),
@@ -122,10 +123,10 @@ class BlockedAccountsScreenState extends State<BlockedAccountsScreen> {
                                     fontColor: primaryDark),
                               )
                             ]),
-                    ),
-                  )
+                      ),
+                    )
                   : RefreshIndicator(
-                    color: primaryDark,
+                      color: primaryDark,
                       onRefresh: () async {
                         callBlockPagination.value = true;
                         pageBlock.value = 1;
@@ -135,7 +136,7 @@ class BlockedAccountsScreenState extends State<BlockedAccountsScreen> {
                       child: ListView.builder(
                         physics: AlwaysScrollableScrollPhysics(),
                         controller: blockController,
-                        itemCount: BlockDataList.length+1,
+                        itemCount: BlockDataList.length + 1,
                         itemBuilder: (context, index) => InkWell(
                           onTap: () {
                             otherProfileViewModel.user_id.value =
@@ -143,14 +144,16 @@ class BlockedAccountsScreenState extends State<BlockedAccountsScreen> {
                                     .userDetails!
                                     .userId
                                     .toString();
-                            Get.to(()=>OtherProfile(fromLink: false,));
+                            Get.to(() => OtherProfile(
+                                  fromLink: false,
+                                ));
                           },
                           child: Column(
                             children: [
                               SizedBox(
                                 height: Get.height * .03,
                               ),
-                              index == BlockDataList.length 
+                              index == BlockDataList.length
                                   ? callBlockPagination.value == true
                                       ? Center(
                                           child: CircularProgressIndicator(
@@ -204,9 +207,7 @@ class BlockedAccountsScreenState extends State<BlockedAccountsScreen> {
                                           fontColor: Colors.black),
                                       trailing: ElevatedButton(
                                           onPressed: () {
-                                          ConfirmDialog(index);
-                                           
-                                        
+                                            ConfirmDialog(index);
                                           },
                                           style: ButtonStyle(
                                               backgroundColor:
@@ -231,7 +232,8 @@ class BlockedAccountsScreenState extends State<BlockedAccountsScreen> {
           }
         }));
   }
-    void ConfirmDialog(int index) {
+
+  void ConfirmDialog(int index) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -251,7 +253,7 @@ class BlockedAccountsScreenState extends State<BlockedAccountsScreen> {
                         child: TextClass(
                             size: 14,
                             fontWeight: FontWeight.w600,
-                            title: "Are you sure you want to revoke request.",
+                            title: "Are you sure you want to Un-Block this Id.",
                             fontColor: Colors.black),
                       )
                     ],
@@ -266,28 +268,58 @@ class BlockedAccountsScreenState extends State<BlockedAccountsScreen> {
                           onTap: () {
                             Navigator.pop(context);
                           },
-                          child: Icon(Icons.close)),
+                          child: Icon(
+                            Icons.close,
+                            color: Colors.red,
+                          )),
                       SizedBox(
                         width: 30,
                       ),
                       InkWell(
                           onTap: () {
-                           int id =
-                                              
-                                                BlockDataList[index]
-                                                    .userDetails!
-                                                    .userId!;
+                            int id = BlockDataList[index].userDetails!.userId!;
 
-                                            unblock_viewModal.blocked_user_id =
-                                                id.toString().obs;
-                                            print(unblock_viewModal
-                                                .blocked_user_id);
-                                            unblock_viewModal.blockUnblockApi();
-                              
-                              BlockDataList.removeAt(index);
+                            unblock_viewModal.blocked_user_id =
+                                id.toString().obs;
+                            unblock_viewModal.fromBlock.value = true;
+                            if( blockList_viewModal
+                                .UserDataList
+                                .value
+                                .userBlockedList![index]
+                                .room_id != null){
+                                  unblock_viewModal.rid?.value = blockList_viewModal
+                                .UserDataList
+                                .value
+                                .userBlockedList![index]
+                                .room_id
+                                .toString();
+                                }
+                            
+                            unblock_viewModal.fromChat.value = false;
+                            unblock_viewModal.collection?.value = 
+                            ownProfileVM
+                                .UserDataList
+                                .value
+                                .userData!
+                                .userDetails!
+                                .userId
+                                .toString();
+
+                            unblock_viewModal.collectionOth?.value =
+                              blockList_viewModal
+                                .UserDataList
+                                .value
+                                .userBlockedList![index].userDetails!.userId.toString();
+
+                            unblock_viewModal.blockUnblockApi();
+
+                            BlockDataList.removeAt(index);
                             Navigator.pop(context);
                           },
-                          child: Icon(Icons.done)),
+                          child: Icon(
+                            Icons.done,
+                            color: Colors.green,
+                          )),
                     ],
                   )
                 ],

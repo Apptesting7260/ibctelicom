@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
@@ -96,6 +97,63 @@ class OtherProfileState extends State<OtherProfile> {
     await Share.share(linkToShare);
   
   }
+
+     Future<void> createOrJoinChatRoom(bool blockVal ) async {
+       var _firestore = FirebaseFirestore.instance;
+    DocumentReference roomRef =
+        _firestore.collection(ownProfileVM.UserDataList.value.userData!.userDetails!.userId.toString()).doc(otherProfileViewModel.UserDataList.value.candidateList!.roomId.toString());
+
+    // Check if room exists
+    DocumentSnapshot roomSnapshot = await roomRef.get();
+
+    if (!roomSnapshot.exists) {
+      await roomRef.set({
+        'createdAt': FieldValue.serverTimestamp(),
+        'userId': otherProfileViewModel.UserDataList.value.candidateList!.userDetails!.userId.toString(),
+        'userName':  otherProfileViewModel.UserDataList.value.candidateList!.userName,
+        'roomId':  otherProfileViewModel.UserDataList.value.candidateList!.roomId.toString(),
+        'profilePhoto':  otherProfileViewModel.UserDataList.value.candidateList!.proImgUrl.toString(),
+        'newMsg': false,
+        'onScreen': false,
+        "noOfUnread": 0,
+        'block': false,
+        'ownBlock': blockVal
+        // Add other room metadata if needed
+      });
+    } else {
+      await roomRef
+          .update({'ownBlock': blockVal});
+    }
+
+  
+   
+
+  }
+   Future<void> createOrJoinChatRoomOther(bool blockVal) async {
+      var _firestore = FirebaseFirestore.instance;
+    DocumentReference roomRef = _firestore.collection(otherProfileViewModel.UserDataList.value.candidateList!.userDetails!.userId.toString()).doc(otherProfileViewModel.UserDataList.value.candidateList!.roomId.toString());
+
+    // Check if room exists
+    DocumentSnapshot roomSnapshot = await roomRef.get();
+
+    if (!roomSnapshot.exists) {
+      await roomRef.set({
+        'createdAt': FieldValue.serverTimestamp(),
+        'userId': ownProfileVM.UserDataList.value.userData!.userDetails!.userId.toString(),
+        'userName':ownProfileVM.UserDataList.value.userData!.userName ,
+        'roomId': otherProfileViewModel.UserDataList.value.candidateList!.roomId.toString(),
+        'profilePhoto': ownProfileVM.UserDataList.value.userData!.proImgUrl,
+        'newMsg': false,
+        'onScreen': true,
+        
+        "noOfUnread": 0,
+        'block':blockVal,
+        'ownBlock':false,
+        // Add other room metadata if needed
+      });
+    } else {
+      await roomRef.update({'block': blockVal});
+    }}
 
   @override
   Widget build(BuildContext context) {
@@ -368,7 +426,7 @@ class OtherProfileState extends State<OtherProfile> {
                               height: height * .05,
                               child: Row(
                                 mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                    MainAxisAlignment.spaceBetween,  
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   otherProfileViewModel.UserDataList.value
@@ -388,6 +446,7 @@ class OtherProfileState extends State<OtherProfile> {
                                                 chatPersonAddVM.ChatPersonAddApi();
                                                 print('tapping it on the chat');
                                                 Get.to(() => ChatScreen(
+                                                  blockStatusGet: otherProfileViewModel.UserDataList.value.candidateList!.blockStatus == 1 ? true : false,
                                                   deviceToken: otherProfileViewModel.UserDataList.value.candidateList!.device_token!,
                                                       ownPhoto: ownProfileVM
                                                           .UserDataList
@@ -1053,15 +1112,11 @@ void ConfirmDialog(BuildContext context, RxBool blockStatus,
                 const EdgeInsets.only(top: 10, bottom: 10, left: 20, right: 20),
             child: Column(
               children: [
-                Row(
-                  children: [
-                    TextClass(
-                        size: 14,
-                        fontWeight: FontWeight.w600,
-                        title: "Are you sure you want to ${status}",
-                        fontColor: Colors.black)
-                  ],
-                ),
+                TextClass(
+                    size: 14,
+                    fontWeight: FontWeight.w600,
+                    title: "Are you sure you want to ${status}",
+                    fontColor: Colors.black),
                 SizedBox(
                   height: 20,
                 ),
@@ -1080,7 +1135,9 @@ void ConfirmDialog(BuildContext context, RxBool blockStatus,
                         onTap: () {
                           blockUnblockViewModal.blocked_user_id = userId;
                           blockUnblockViewModal.blockUnblockApi();
+                          blockUnblockViewModal.fromChat.value = false;
                           blockStatus.value = !blockStatus.value;
+                       
                           Navigator.pop(context);
                         },
                         child: Icon(Icons.done)),
@@ -1094,3 +1151,6 @@ void ConfirmDialog(BuildContext context, RxBool blockStatus,
     },
   );
 }
+
+
+  

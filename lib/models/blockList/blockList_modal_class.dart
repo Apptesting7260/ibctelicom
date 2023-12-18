@@ -47,7 +47,7 @@ class UserBlockedList {
  
   String? userName;
  
- 
+  var room_id;
   String? proImgUrl;
   UserDetails? userDetails;
  
@@ -55,6 +55,7 @@ class UserBlockedList {
   UserBlockedList(
       {
       this.userName,
+      this.room_id,
     
       this.proImgUrl,
       this.userDetails,
@@ -63,6 +64,7 @@ class UserBlockedList {
   UserBlockedList.fromJson(Map<String, dynamic> json) {
 
     userName = json['user_name'];
+    room_id = json['room_id'];
     
     proImgUrl = json['pro_img_url'];
     userDetails = json['user_details'] != null
@@ -75,6 +77,7 @@ class UserBlockedList {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     
     data['user_name'] = this.userName;
+    data['room_id'] = this.room_id;
    
     data['pro_img_url'] = this.proImgUrl;
     if (this.userDetails != null) {

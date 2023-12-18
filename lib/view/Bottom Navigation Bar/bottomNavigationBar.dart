@@ -113,7 +113,7 @@ class BottomNavigationState extends State<BottomNavigation>  {
     });
   }
   void listenDynamicLinks() async {
-    streamSubscription = FlutterBranchSdk.initSession().listen((data) {
+    streamSubscription = FlutterBranchSdk.listSession().listen((data) {
       print(
           "---------------------------------------------------------------------- Calling this---------------------------");
       if (data.containsKey("+clicked_branch_link") &&
